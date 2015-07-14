@@ -23,7 +23,7 @@ static void bluetooth_cb(bool connected) {
 
 static void face_load(Window *face) {
   status_icons_init();
-  font_small_init();
+  bfonts_init();
 
   background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMG_BACKGROUND);
   background_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
@@ -67,7 +67,7 @@ static void face_unload(Window *face) {
   gbitmap_destroy(background_bitmap);
 
   status_icons_fin();
-  font_small_fin();
+  bfonts_fin();
 }
 
 int main(void) {

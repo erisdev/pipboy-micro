@@ -10,53 +10,66 @@
 
 #define INVALID_CHAR (FONT_CHAR_COUNT - 1)
 
-Atlas *font_chars;
-
-/* yuck that these are hardcoded but who wants to do image analysis */
-uint8_t font_widths[FONT_CHAR_COUNT] = {
-  4, 3, 6, 8, 7, 9, 8, 4, 5, 5, 8, 7, 4, 7, 4, 8,
-  7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 4, 4, 6, 7, 6, 7,
-  8, 9, 8, 7, 8, 7, 7, 8, 8, 3, 8, 8, 7, 8, 8, 8,
-  8, 8, 8, 8, 7, 8, 9, 8, 9, 9, 8, 5, 8, 5, 8, 7,
-  4, 7, 7, 6, 7, 7, 6, 7, 7, 3, 6, 7, 3, 8, 7, 7,
-  7, 7, 6, 7, 7, 7, 8, 8, 7, 7, 7, 6, 0, 6, 7, 9
+typedef struct charset_entry CharsetEntry;
+struct charset_entry {
+  char code;
+  uint8_t width;
+  GBitmap *bitmap;
+};
+  
+struct bitmap_font {
+  Atlas *atlas;
+  GSize char_size;
+  int nchars;
+  CharsetEntry charset[];
 };
 
-void font_small_init() {
-  font_chars = atlas_create(RESOURCE_ID_IMG_FONT_SMALL,
-    GSize(FONT_CHAR_WIDTH, FONT_CHAR_HEIGHT));
+BitmapFont *bfont_create(uint32_t resource_id, GSize char_size, const char *repertoire, uint8_t widths[]) {
+  Atlas *atlas = atlas_create(resource_id, char_size);
+  
+  int nchars = strlen(repertoire);
+  
+  BitmapFont *font = malloc(sizeof(BitmapFont) + nchars * sizeof(CharsetEntry));
+  font->atlas = atlas;
+  font->char_size = char_size;
+  font->nchars = nchars;
+  
+  for (int i = 0; i < nchars; ++i) {
+    font->charset[i] = (CharsetEntry){ repertoire[i], widths[i], atlas_get_tile(atlas, i) };
+  }
+  
+  return font;
 }
 
-void font_small_fin() {
-  atlas_destroy(font_chars);
+void bfont_destroy(BitmapFont *font) {
+  atlas_destroy(font->atlas);
+  free(font);
 }
 
-static inline GBitmap *get_char(char ch) {
-  uint8_t i = ch - (uint8_t)FONT_FIRST_CHAR;
-  return atlas_get_tile(font_chars, i < FONT_CHAR_COUNT ? i : INVALID_CHAR);
+static inline CharsetEntry *get_char(BitmapFont *font, char ch) {
+  for (int i = 0; i < font->nchars; ++i) {
+    CharsetEntry *info = font->charset + i;
+    if (info->code == ch) return info;
+  }
+  return NULL;
 }
 
-static inline uint8_t char_width(char ch) {
-  uint8_t i = ch - (uint8_t)FONT_FIRST_CHAR;
-  return font_widths[i < FONT_CHAR_COUNT ? i : INVALID_CHAR];
-}
-
-uint8_t font_width(const char *str) {
+uint8_t bfont_width(BitmapFont *font, const char *str) {
   uint8_t w = 0;
   while (*str) {
-    w += char_width(*str);
+    w += get_char(font, *str)->width;
     ++str;
   }
   return w;
 }
 
-void font_small_draw(GContext *ctx, const char *str, GPoint origin) {
-  int x = origin.x, y = origin.y;
+void bfont_draw(BitmapFont *font, GContext *ctx, const char *str, GPoint origin) {
+  int x = origin.x;
   
   while (*str) {
-    int w = char_width(*str);
-    graphics_draw_bitmap_in_rect(ctx, get_char(*str), GRect(x, y, w, FONT_CHAR_HEIGHT));
-    x += w;
+    CharsetEntry *info = get_char(font, *str);
+    graphics_draw_bitmap_in_rect(ctx, info->bitmap, GRect(x, origin.y, info->width, font->char_size.h));
+    x += info->width;
     ++str;
   }
 }

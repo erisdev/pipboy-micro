@@ -33,6 +33,7 @@ void atlas_destroy(Atlas *atlas) {
   for (int i = 0; i < atlas->ntiles; ++i)
     gbitmap_destroy(atlas->tiles[i]);
   gbitmap_destroy(atlas->parent_bitmap);
+  free(atlas);
 }
 
 GBitmap *atlas_get_tile(Atlas *atlas, uint8_t index) {
