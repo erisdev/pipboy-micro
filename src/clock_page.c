@@ -1,7 +1,5 @@
 #include <pebble.h>
 #include "font_small.h"
-#include "clock.h"
-#include "date.h"
 
 static Layer *root_layer;
 
@@ -9,23 +7,40 @@ static BitmapLayer *logo_layer;
 static GBitmap *logo_bitmap;
 
 static Layer *time_layer;
+static char time_text_buffer[6];
+
 static Layer *date_layer;
+static char date_text_buffer[13];
 
 static void tick_cb(struct tm *tick_time, TimeUnits units_changed) {
   if (units_changed & MINUTE_UNIT) {
-    time_set_time(tick_time);
+    strftime(time_text_buffer, sizeof(time_text_buffer), "%H:%M", tick_time);
     layer_mark_dirty(time_layer);
   }
   if (units_changed & DAY_UNIT) {
-    date_set_time(tick_time);
+    strftime(date_text_buffer, sizeof(date_text_buffer), "%d %b. %Y", tick_time);
     layer_mark_dirty(date_layer);
   }
 }
 
-void show_clock(Window *window) {
-  clock_init();
-  date_init();
+static void time_draw_cb(Layer *layer, GContext *ctx) {
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
+  
+  bfont_draw(clock_font, ctx, time_text_buffer, GPoint(0, 0));
+}
 
+static void date_draw_cb(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  int x = (bounds.size.w - bfont_width(small_font, date_text_buffer)) / 2;
+  
+  graphics_context_set_fill_color(ctx, GColorBlack);
+  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+  
+  bfont_draw(small_font, ctx, date_text_buffer, GPoint(x, 0));
+}
+
+void show_clock(Window *window) {
   root_layer = layer_create(GRect(0, 0, 144, 168));
   layer_add_child(window_get_root_layer(window), root_layer);
   
@@ -44,9 +59,8 @@ void show_clock(Window *window) {
   
   time_t tmp = time(NULL);
   struct tm *tick_time = localtime(&tmp);
-  time_set_time(tick_time);
-  date_set_time(tick_time);
-
+  tick_cb(tick_time, MINUTE_UNIT | DAY_UNIT);
+  
   tick_timer_service_subscribe(MINUTE_UNIT | DAY_UNIT, tick_cb);
 }
 
@@ -61,7 +75,4 @@ void hide_clock() {
   layer_destroy(date_layer);
   
   gbitmap_destroy(logo_bitmap);
-  
-  clock_fin();
-  date_fin();
 }
