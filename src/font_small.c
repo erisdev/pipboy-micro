@@ -8,8 +8,9 @@
 #define FONT_CHAR_WIDTH   9
 #define FONT_CHAR_HEIGHT  9
 
-GBitmap *font_atlas;
-GBitmap *font_chars[FONT_CHAR_COUNT];
+#define INVALID_CHAR (FONT_CHAR_COUNT - 1)
+
+Atlas *font_chars;
 
 /* yuck that these are hardcoded but who wants to do image analysis */
 uint8_t font_widths[FONT_CHAR_COUNT] = {
@@ -22,22 +23,22 @@ uint8_t font_widths[FONT_CHAR_COUNT] = {
 };
 
 void font_small_init() {
-  atlas_load(RESOURCE_ID_IMG_FONT_SMALL, &font_atlas, font_chars,
-    FONT_CHAR_COUNT, GSize(FONT_CHAR_HEIGHT, FONT_CHAR_WIDTH));
+  font_chars = atlas_create(RESOURCE_ID_IMG_FONT_SMALL,
+    GSize(FONT_CHAR_WIDTH, FONT_CHAR_HEIGHT));
 }
 
 void font_small_fin() {
-  atlas_destroy(font_atlas, font_chars, FONT_CHAR_COUNT);
+  atlas_destroy(font_chars);
 }
 
 static inline GBitmap *get_char(char ch) {
   uint8_t i = ch - (uint8_t)FONT_FIRST_CHAR;
-  return font_chars[i >= FONT_CHAR_COUNT ? FONT_CHAR_COUNT - 1 : i];
+  return atlas_get_tile(font_chars, i < FONT_CHAR_COUNT ? i : INVALID_CHAR);
 }
 
 static inline uint8_t char_width(char ch) {
   uint8_t i = ch - (uint8_t)FONT_FIRST_CHAR;
-  return font_widths[i >= FONT_CHAR_COUNT ? FONT_CHAR_COUNT - 1 : i];
+  return font_widths[i < FONT_CHAR_COUNT ? i : INVALID_CHAR];
 }
 
 uint8_t font_width(const char *str) {
@@ -54,8 +55,8 @@ void font_small_draw(GContext *ctx, const char *str, GPoint origin) {
   
   while (*str) {
     int w = char_width(*str);
-    graphics_draw_bitmap_in_rect(ctx, get_char(*str), GRect(x, y, FONT_CHAR_HEIGHT, w));
-    y += w;
+    graphics_draw_bitmap_in_rect(ctx, get_char(*str), GRect(x, y, w, FONT_CHAR_HEIGHT));
+    x += w;
     ++str;
   }
 }

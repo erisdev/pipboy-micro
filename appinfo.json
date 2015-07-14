@@ -9,8 +9,13 @@
     "resources": {
         "media": [
             {
-                "file": "images/bluetooth.png",
-                "name": "IMG_BLUETOOTH",
+                "file": "images/vault-tec-logo.png",
+                "name": "IMG_LOGO_VAULTTEC",
+                "type": "png"
+            },
+            {
+                "file": "images/background.png",
+                "name": "IMG_BACKGROUND",
                 "type": "png"
             },
             {
@@ -19,8 +24,8 @@
                 "type": "png"
             },
             {
-                "file": "images/font-small.png",
-                "name": "IMG_FONT_SMALL",
+                "file": "images/bluetooth.png",
+                "name": "IMG_BLUETOOTH",
                 "type": "png"
             },
             {
@@ -29,8 +34,8 @@
                 "type": "png"
             },
             {
-                "file": "images/background.png",
-                "name": "IMG_BACKGROUND",
+                "file": "images/font-small.png",
+                "name": "IMG_FONT_SMALL",
                 "type": "png"
             },
             {

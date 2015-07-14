@@ -1,38 +1,35 @@
 #include <pebble.h>
 #include "battery_icon.h"
 #include "atlas.h"
+#include "useful.h"
 
-#define BATTERY_ICON_COUNT  10
-#define BATTERY_ICON_WIDTH   7
-#define BATTERY_ICON_HEIGHT 13
+#define BATTERY_ICON_WIDTH  13
+#define BATTERY_ICON_HEIGHT  8
 
-static GBitmap *battery_atlas;
-static GBitmap *battery_icons[BATTERY_ICON_COUNT];
+#define BLUETOOTH_ICON_WIDTH  8
+#define BLUETOOTH_ICON_HEIGHT 7
 
-#define BLUETOOTH_ICON_COUNT  2
-#define BLUETOOTH_ICON_WIDTH  7
-#define BLUETOOTH_ICON_HEIGHT 8
-
-static GBitmap *bluetooth_atlas;
-static GBitmap *bluetooth_icons[BLUETOOTH_ICON_COUNT];
+static Atlas *battery_icons;
+static Atlas *bluetooth_icons;
   
 void status_icons_init() {
-  atlas_load(RESOURCE_ID_IMG_BATTERY, &battery_atlas, battery_icons,
-    BATTERY_ICON_COUNT, GSize(BATTERY_ICON_WIDTH, BATTERY_ICON_HEIGHT));
-  atlas_load(RESOURCE_ID_IMG_BLUETOOTH, &bluetooth_atlas, bluetooth_icons,
-    BLUETOOTH_ICON_COUNT, GSize(BLUETOOTH_ICON_WIDTH, BLUETOOTH_ICON_HEIGHT));
+  battery_icons = atlas_create(RESOURCE_ID_IMG_BATTERY,
+    GSize(BATTERY_ICON_WIDTH, BATTERY_ICON_HEIGHT));
+  bluetooth_icons = atlas_create(RESOURCE_ID_IMG_BLUETOOTH,
+    GSize(BLUETOOTH_ICON_WIDTH, BLUETOOTH_ICON_HEIGHT));
 }
 
 void status_icons_fin() {
-  atlas_destroy(battery_atlas, battery_icons, BATTERY_ICON_COUNT);
-  atlas_destroy(bluetooth_atlas, bluetooth_icons, BLUETOOTH_ICON_COUNT);
+  atlas_destroy(battery_icons);
+  atlas_destroy(bluetooth_icons);
 }
 
 GBitmap *battery_icon_get(BatteryChargeState battery) {
-  uint8_t i = battery.charge_percent / 10;
-  return battery_icons[i < BATTERY_ICON_COUNT ? i : BATTERY_ICON_COUNT - 1];
+  return atlas_get_tile(battery_icons,
+    min(9, battery.charge_percent / 10)
+    + (battery.is_charging ? 10 : 0));
 }
 
 GBitmap *bluetooth_icon_get(bool connected) {
-  return bluetooth_icons[connected ? 1 : 0];
+  return atlas_get_tile(bluetooth_icons, connected ? 1 : 0);
 }

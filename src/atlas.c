@@ -1,23 +1,43 @@
 #include <pebble.h>
+#include "atlas.h"
 
-void atlas_load(uint32_t resource_id, GBitmap **atlas, GBitmap **tiles, uint8_t tile_count, GSize tile_size) {
-  *atlas = gbitmap_create_with_resource(resource_id);
-  GSize atlas_size = (*atlas)->bounds.size;
+struct atlas {
+  uint8_t ntiles;
+  GBitmap *parent_bitmap;
+  GBitmap *tiles[];
+};
+
+Atlas *atlas_create(uint32_t resource_id, GSize tile_size) {
+  GBitmap *bitmap = gbitmap_create_with_resource(resource_id);
+  GSize bitmap_size = bitmap->bounds.size;
   
-  int nrows = atlas_size.h / tile_size.h;
-  
-  for (int i = 0; i < tile_count; ++i) {
-    tiles[i] = gbitmap_create_as_sub_bitmap(*atlas, GRect(
-      atlas_size.w - (i / nrows + 1) * tile_size.w,
-      i * tile_size.h % atlas_size.h,
-      tile_size.w,
-      tile_size.h));
+  int ncols = bitmap_size.w / tile_size.w;
+  int nrows = bitmap_size.h / tile_size.h;
+  int ntiles = ncols * nrows;
+
+  Atlas *atlas = malloc(sizeof(Atlas) + ntiles * sizeof(GBitmap *));
+  atlas->parent_bitmap = bitmap;
+  atlas->ntiles = ntiles;
+
+  for (int i = 0; i < ntiles; ++i) {
+    atlas->tiles[i] = gbitmap_create_as_sub_bitmap(bitmap, GRect(
+      tile_size.w * (i % ncols),
+      tile_size.h * (i / ncols),
+      tile_size.w, tile_size.h));
   }
+  
+  return atlas;
 }
 
-void atlas_destroy(GBitmap *atlas, GBitmap **tiles, uint8_t tile_count) {
-  for (int i = 0; i < tile_count; ++i)
-    gbitmap_destroy(tiles[i]);
-  gbitmap_destroy(atlas);
+void atlas_destroy(Atlas *atlas) {
+  for (int i = 0; i < atlas->ntiles; ++i)
+    gbitmap_destroy(atlas->tiles[i]);
+  gbitmap_destroy(atlas->parent_bitmap);
+}
 
+GBitmap *atlas_get_tile(Atlas *atlas, uint8_t index) {
+  if (index < atlas->ntiles)
+    return atlas->tiles[index];
+  else
+    return NULL;
 }

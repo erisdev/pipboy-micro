@@ -17,7 +17,11 @@ void date_set_time(struct tm *tick_time) {
 }
 
 void date_draw_cb(Layer *layer, GContext *ctx) {
+  GRect bounds = layer_get_bounds(layer);
+  int x = (bounds.size.w - font_width(text_buffer)) / 2;
+  
   graphics_context_set_fill_color(ctx, GColorBlack);
-  graphics_fill_rect(ctx, layer_get_bounds(layer), 0, GCornerNone);
-  font_small_draw(ctx, text_buffer, GPoint(0, 0));
+  graphics_fill_rect(ctx, bounds, 0, GCornerNone);
+  
+  font_small_draw(ctx, text_buffer, GPoint(x, 0));
 }
