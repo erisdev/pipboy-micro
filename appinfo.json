@@ -1,0 +1,52 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        "configurable"
+    ],
+    "companyName": "erisdev",
+    "longName": "Pip-Boy Micro",
+    "projectType": "native",
+    "resources": {
+        "media": [
+            {
+                "file": "images/bluetooth.png",
+                "name": "IMG_BLUETOOTH",
+                "type": "png"
+            },
+            {
+                "file": "images/battery.png",
+                "name": "IMG_BATTERY",
+                "type": "png"
+            },
+            {
+                "file": "images/font-small.png",
+                "name": "IMG_FONT_SMALL",
+                "type": "png"
+            },
+            {
+                "file": "images/font-clock.png",
+                "name": "IMG_CLOCK",
+                "type": "png"
+            },
+            {
+                "file": "images/background.png",
+                "name": "IMG_BACKGROUND",
+                "type": "png"
+            },
+            {
+                "file": "images/icon.png",
+                "menuIcon": true,
+                "name": "IMG_ICON",
+                "type": "png"
+            }
+        ]
+    },
+    "sdkVersion": "2",
+    "shortName": "Pip-Boy Micro",
+    "uuid": "819d6540-b302-40f0-ae7b-1bf95eb1158b",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": true
+    }
+}
