@@ -1,5 +1,5 @@
 #include <pebble.h>
-#include "font_small.h"
+#include "bfont.h"
 #include "atlas.h"
 
 #define FONT_FIRST_CHAR ' '

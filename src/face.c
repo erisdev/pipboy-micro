@@ -1,8 +1,12 @@
 #include <pebble.h>
-#include "battery_icon.h"
-#include "font_small.h"
+#include "atlas.h"
+#include "bfont.h"
+#include "useful.h"
 
 static Window *face;
+
+static Atlas *battery_icons;
+static Atlas *bluetooth_icons;
 
 static BitmapLayer *battery_icon_layer;
 static BitmapLayer *bluetooth_icon_layer;
@@ -14,17 +18,22 @@ void show_clock(Window *window);
 void hide_clock();
 
 static void battery_cb(BatteryChargeState battery) {
-  bitmap_layer_set_bitmap(battery_icon_layer, battery_icon_get(battery));
+  GBitmap *icon = atlas_get_tile(battery_icons,
+    min(9, battery.charge_percent / 10) + (battery.is_charging ? 10 : 0));
+  bitmap_layer_set_bitmap(battery_icon_layer, icon);
 }
 
 static void bluetooth_cb(bool connected) {
-  bitmap_layer_set_bitmap(bluetooth_icon_layer, bluetooth_icon_get(connected));
+  GBitmap *icon = atlas_get_tile(bluetooth_icons, connected ? 1 : 0);
+  bitmap_layer_set_bitmap(bluetooth_icon_layer, icon);
 }
 
 static void face_load(Window *face) {
-  status_icons_init();
   bfonts_init();
 
+  battery_icons = atlas_create(RESOURCE_ID_IMG_BATTERY, GSize(13, 8));
+  bluetooth_icons = atlas_create(RESOURCE_ID_IMG_BLUETOOTH, GSize(8, 7));
+  
   background_bitmap = gbitmap_create_with_resource(RESOURCE_ID_IMG_BACKGROUND);
   background_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
   bitmap_layer_set_bitmap(background_layer, background_bitmap);
@@ -65,8 +74,9 @@ static void face_unload(Window *face) {
   bitmap_layer_destroy(background_layer);
 
   gbitmap_destroy(background_bitmap);
+  atlas_destroy(battery_icons);
+  atlas_destroy(bluetooth_icons);
 
-  status_icons_fin();
   bfonts_fin();
 }
 
